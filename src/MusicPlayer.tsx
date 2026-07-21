@@ -5,29 +5,6 @@ const MUSIC_MUTED_KEY = "alyazouri_music_muted";
 const YOUTUBE_VIDEO_ID = "x-DJKKK8kns";
 const MUSIC_VOLUME = 15;
 
-declare global {
-  interface Window {
-    YT: {
-      Player: new (
-        elementId: string,
-        options: {
-          videoId: string;
-          playerVars: Record<string, unknown>;
-          events: Record<string, (e: { data: number }) => void>;
-        }
-      ) => YTPlayer;
-    };
-    onYouTubeIframeAPIReady: () => void;
-  }
-}
-
-interface YTPlayer {
-  setVolume: (v: number) => void;
-  playVideo: () => void;
-  pauseVideo: () => void;
-  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
-}
-
 export function MusicPlayer() {
   const { lang } = useLang();
   const isAr = lang === "ar";
@@ -36,76 +13,50 @@ export function MusicPlayer() {
     try { return localStorage.getItem(MUSIC_MUTED_KEY) === "true"; } catch { return false; }
   });
   const [loaded, setLoaded] = useState(false);
-  const playerRef = useRef<YTPlayer | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const playerRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const initPlayer = useCallback(() => {
     if (loaded) return;
     setLoaded(true);
-
     const div = document.createElement("div");
     div.id = "yt-music-player";
     div.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;";
     document.body.appendChild(div);
     containerRef.current = div;
 
-    const create = (PC: typeof window.YT.Player) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const create = (PC: any) => {
       if (playerRef.current) return;
       const p = new PC("yt-music-player", {
         videoId: YOUTUBE_VIDEO_ID,
-        playerVars: {
-          autoplay: 0,
-          loop: 1,
-          playlist: YOUTUBE_VIDEO_ID,
-          controls: 0,
-          disablekb: 1,
-          fs: 0,
-          modestbranding: 1,
-          rel: 0,
-          showinfo: 0,
-          iv_load_policy: 3,
-          origin: window.location.origin
-        },
+        playerVars: { autoplay: 0, loop: 1, playlist: YOUTUBE_VIDEO_ID, controls: 0, disablekb: 1, fs: 0, modestbranding: 1, rel: 0, showinfo: 0, iv_load_policy: 3, origin: window.location.origin },
         events: {
-          onReady: () => {
-            playerRef.current = p;
-            p.setVolume(MUSIC_VOLUME);
-            unmute(p);
-          },
-          onStateChange: (e: { data: number }) => {
-            if (e.data === 0) {
-              p.seekTo(0, true);
-              p.playVideo();
-            }
-          },
+          onReady: () => { playerRef.current = p; p.setVolume(MUSIC_VOLUME); unmute(p); },
+          onStateChange: (e: { data: number }) => { if (e.data === 0) { p.seekTo(0, true); p.playVideo(); } },
+          onError: () => {},
         },
       });
     };
 
-    window.onYouTubeIframeAPIReady = () => {
-      if (window.YT) create(window.YT.Player);
-    };
-
-    if (!window.YT) {
+    w.onYouTubeIframeAPIReady = () => { if (w.YT) create(w.YT.Player); };
+    if (!w.YT) {
       const tag = document.createElement("script");
       tag.src = "https://www.youtube.com/iframe_api";
       document.head.appendChild(tag);
     }
-
-    const check = () => {
-      if (window.YT?.Player) create(window.YT.Player);
-      else setTimeout(check, 200);
-    };
+    const check = () => { if (w.YT?.Player) create(w.YT.Player); else setTimeout(check, 200); };
     check();
   }, [loaded]);
 
-  const unmute = useCallback((p?: YTPlayer) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const unmute = useCallback((p?: any) => {
     const player = p ?? playerRef.current;
     if (!player) return;
-    try {
-      player.setVolume(MUSIC_VOLUME);
-      player.playVideo();
-    } catch { /* */ }
+    try { player.setVolume(MUSIC_VOLUME); player.playVideo(); } catch { /* */ }
     setMuted(false);
     setPlaying(true);
     try { localStorage.setItem(MUSIC_MUTED_KEY, "false"); } catch { /* */ }
@@ -125,10 +76,7 @@ export function MusicPlayer() {
   }, []);
 
   const toggle = () => {
-    if (!loaded) {
-      initPlayer();
-      return;
-    }
+    if (!loaded) { initPlayer(); return; }
     if (muted) unmute();
     else mute();
   };
@@ -136,14 +84,10 @@ export function MusicPlayer() {
   return (
     <button
       onClick={toggle}
-      className={`fixed bottom-4 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full border shadow-lg transition-all ${
-        playing && !muted
-          ? "border-emerald-400/50 bg-emerald-500/20 text-emerald-300"
-          : "border-white/20 bg-black/50 text-white/50 hover:text-white"
-      }`}
-      title={isAr ? (muted ? "تشغيل الموسيقى" : "إيقاف الموسيقى") : (muted ? "Play Music" : "Mute Music")}
+      className="btn-ghost rounded-lg px-3 py-2 text-xs font-semibold"
+      title={isAr ? "موسيقى خلفية" : "Background Music"}
     >
-      <span className="text-xl">{playing && !muted ? "🎵" : "🔇"}</span>
+      {playing && !muted ? "🎵" : "🔇"}
     </button>
   );
 }

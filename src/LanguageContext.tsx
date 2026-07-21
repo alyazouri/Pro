@@ -32,6 +32,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const dir = LANGUAGES.find((l) => l.id === lang)?.dir ?? "rtl";
 
+  const setLang = (l: Lang) => setLangState(l);
+
   useEffect(() => {
     document.documentElement.lang = lang;
     document.documentElement.dir = dir;
@@ -39,7 +41,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, [lang, dir]);
 
   return (
-    <LanguageContext.Provider value={{ lang, setLang: setLangState, dir }}>
+    <LanguageContext.Provider value={{ lang, setLang, dir }}>
       {children}
     </LanguageContext.Provider>
   );

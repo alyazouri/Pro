@@ -274,32 +274,22 @@ input[type="range"]::-webkit-slider-thumb {
   appearance: none;
   width: 18px;
   height: 18px;
-  background: linear-gradient(135deg, #ff7a00, #ffd166);
   border-radius: 50%;
+  background: linear-gradient(135deg, #ff7a00, #ffd166);
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(255,122,0,0.5);
+  box-shadow: 0 0 10px rgba(255,122,0,0.5);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff7a00, #ffd166);
+  cursor: pointer;
+  border: none;
 }
 
 /* ==================== SELECT ==================== */
 select {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 0.75rem;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-select:hover {
-  border-color: rgba(255,122,0,0.3);
-}
-select:focus {
-  outline: none;
-  border-color: rgba(255,122,0,0.5);
-  box-shadow: 0 0 0 3px rgba(255,122,0,0.1);
-}
-select option {
-  background: #0a0a14;
-  color: white;
+  -webkit-appearance: none;
+  appearance: none;
 }

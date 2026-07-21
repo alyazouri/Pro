@@ -1,16 +1,12 @@
 import { useState, useEffect } from "react";
 import { useLang } from "./LanguageContext";
 
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
-
 export function PWABanner() {
   const { lang } = useLang();
   const isAr = lang === "ar";
   const [show, setShow] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
     const dismissed = localStorage.getItem("alyazouri_pwa_dismissed");
@@ -20,7 +16,7 @@ export function PWABanner() {
 
     const handler = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      setDeferredPrompt(e);
       setShow(true);
     };
     window.addEventListener("beforeinstallprompt", handler);
@@ -37,8 +33,10 @@ export function PWABanner() {
 
   const handleInstall = async () => {
     if (deferredPrompt) {
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (deferredPrompt as any).prompt();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (deferredPrompt as any).userChoice;
       setDeferredPrompt(null);
     }
     handleDismiss();
@@ -63,7 +61,7 @@ export function PWABanner() {
             {deferredPrompt ? (
               isAr ? "ثبّت ALYAZOURI على جهازك للوصول السريع" : "Install ALYAZOURI on your device for quick access"
             ) : (
-              isAr ? "📱 اضغط مشاركة ↗ ثم \"أضف للشاشة الرئيسية\"" : "📱 Tap Share ↗ then \"Add to Home Screen\""
+              isAr ? <span>📱 اضغط مشاركة ↗ ثم &quot;أضف للشاشة الرئيسية&quot;</span> : <span>📱 Tap Share ↗ then &quot;Add to Home Screen&quot;</span>
             )}
           </div>
           <div className="mt-3 flex gap-2">
